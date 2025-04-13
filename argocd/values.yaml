@@ -1,0 +1,21 @@
+argocd:
+  global:
+    domain: argo.local
+  configs:
+    cm:
+      timeout.reconciliation: 30s
+    params:
+      server.insecure: true
+      server.disable.auth: true
+    repositories:
+      museum-auth:
+        url: museum.local
+        name: museum
+        type: helm
+        password: cauan@123
+        username: admin
+  server:
+    ingress:
+      enabled: true
+      ingressClassName: "nginx"
+      hostname: "argo.local"

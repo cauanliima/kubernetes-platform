@@ -1,0 +1,50 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: grafana
+  namespace: argo  # namespace onde o Argo CD está instalado
+spec:
+  project: default
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: grafana
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true
+    syncOptions:
+      - CreateNamespace=true
+  source:
+    repoURL: https://grafana.github.io/helm-charts
+    chart: grafana
+    targetRevision: 11.6.0
+    helm:
+      values: |
+        admin:
+          user: "admin"
+          password: "admin@123"  # Troque por uma senha forte
+        ingress:
+          enabled: true
+          ingressClassName: nginx
+          hosts:
+                - grafana.tce.rn.gov.br
+        datasources:
+          datasources.yaml:
+            apiVersion: 1
+            datasources:
+              - name: Prometheus
+                type: prometheus
+                access: proxy
+                url: http://prometheus-server.monitoring.svc.cluster.local
+                isDefault: true
+                editable: true
+        dashboards:
+          teste:
+            teste:
+              json: |
+                {
+                  "title": "Meu Dashboard",
+                  "panels": [],
+                  "schemaVersion": 30,
+                  "version": 1
+                }

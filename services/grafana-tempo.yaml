@@ -1,0 +1,28 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: grafana-tempo
+  namespace: argo  # Namespace do Argo CD
+spec:
+  project: default
+  source:
+    repoURL: https://charts.bitnami.com/bitnami
+    chart: grafana-tempo
+    targetRevision: 4.0.2
+    helm:
+      values: |
+        # Aqui você pode adicionar valores personalizados, se necessário
+        # Exemplo:
+        # traces:
+        #   otlp:
+        #     grpc:
+        #       enabled: true
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: grafana-tempo
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true
+    syncOptions:
+      - CreateNamespace=true

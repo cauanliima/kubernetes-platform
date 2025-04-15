@@ -1,6 +1,6 @@
 apiVersion: v2
 name: argocd
-description: argocd
+description: Versão argcod
 type: application
 version: 1.0.0
 appVersion: 1.0.0

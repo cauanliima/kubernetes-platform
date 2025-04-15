@@ -1,0 +1,30 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: opentelemetry-operator
+  namespace: argo  # Namespace onde o Argo CD está instalado
+spec:
+  project: default
+  source:
+    repoURL: https://open-telemetry.github.io/opentelemetry-helm-charts
+    chart: opentelemetry-operator
+    targetRevision: latest  # ou defina uma versão específica, como "0.43.0"
+    helm:
+      values: |
+        manager:
+          collectorImage:
+            repository: otel/opentelemetry-collector-k8s
+        admissionWebhooks:
+          certManager:
+            enabled: false
+          autoGenerateCert:
+            enabled: true
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: opentelemetry-operator
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true
+    syncOptions:
+      - CreateNamespace=true

@@ -1,0 +1,135 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: opentelemetry-collector
+  namespace: argo  # namespace onde o Argo CD está instalado
+spec:
+  project: default
+  source:
+    repoURL: https://open-telemetry.github.io/opentelemetry-helm-charts
+    chart: opentelemetry-collector
+    targetRevision: latest  # ou especifique uma versão, ex: 0.64.0
+    helm:
+      values: |
+        mode: statefulset
+        image:
+          repository: "otel/opentelemetry-collector-contrib"
+        config:
+          exporters:
+            debug: {}
+            prometheus:
+              endpoint: "0.0.0.0:8889"
+            otlphttp/tempo:
+              endpoint: "http://grafana-tempo.grafana-tempo:4318"
+            otlphttp/coroot:
+              endpoint: "http://coroot.coroot"
+              encoding: proto
+              headers:
+                "x-api-key": ""
+          extensions:
+            # The health_check extension is mandatory for this chart.
+            # Without the health_check extension the collector will fail the readiness and liveliness probes.
+            # The health_check extension can be modified, but should never be removed.
+            health_check:
+              endpoint: ${env:MY_POD_IP}:13133
+          processors:
+            batch: {}
+            # Default memory limiter configuration for the collector based on k8s resource limits.
+            memory_limiter:
+              # check_interval is the time between measurements of memory usage.
+              check_interval: 5s
+              # By default limit_mib is set to 80% of ".Values.resources.limits.memory"
+              limit_percentage: 80
+              # By default spike_limit_mib is set to 25% of ".Values.resources.limits.memory"
+              spike_limit_percentage: 25
+          connectors:
+            spanmetrics:
+              histogram:
+                explicit:
+                  buckets: [100us, 1ms, 2ms, 6ms, 10ms, 100ms, 250ms]
+              dimensions:
+                - name: http.method
+                - name: http.status_code
+                - name: http.route
+              exemplars:
+                enabled: true
+              dimensions_cache_size: 1000
+              aggregation_temporality: "AGGREGATION_TEMPORALITY_CUMULATIVE"    
+              metrics_flush_interval: 15s
+              metrics_expiration: 5m
+              events:
+                enabled: true
+                dimensions:
+                  - name: exception.type
+                  - name: exception.message
+              resource_metrics_key_attributes:
+                - service.name
+                - telemetry.sdk.language
+                - telemetry.sdk.name
+          receivers:
+            otlp:
+              protocols:
+                grpc:
+                  endpoint: ${env:MY_POD_IP}:4317
+                http:
+                  endpoint: ${env:MY_POD_IP}:4318
+            prometheus:
+              config:
+                scrape_configs:
+                  - job_name: opentelemetry-collector
+                    scrape_interval: 10s
+                    static_configs:
+                      - targets:
+                          - ${env:MY_POD_IP}:8888
+                  - job_name: opentelemetry-operator
+                    scrape_interval: 10s
+                    static_configs:
+                      - targets:
+                          - otel-operator-opentelemetry-operator.otel-operator:8080
+          service:
+            telemetry:
+              metrics:
+                address: ${env:MY_POD_IP}:8888
+            extensions:
+              - health_check
+            pipelines:
+              logs:
+                exporters:
+                  - debug
+                  - otlphttp/coroot
+                processors:
+                  - memory_limiter
+                  - batch
+                receivers:
+                  - otlp
+              metrics:
+                exporters:
+                  - debug
+                  - prometheus
+                processors:
+                  - memory_limiter
+                  - batch
+                receivers:
+                  - spanmetrics
+                  - otlp
+                  - prometheus
+              traces:
+                exporters:
+                  - debug
+                  - spanmetrics
+                  - otlphttp/tempo
+                  - otlphttp/coroot
+                processors:
+                  - memory_limiter
+                  - batch
+                receivers:
+                  - otlp
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: opentelemetry
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true
+    syncOptions:
+      - CreateNamespace=true

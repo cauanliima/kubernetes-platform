@@ -1,0 +1,45 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: prometheus
+  namespace: argo  # Namespace onde o Argo CD está instalado
+spec:
+  project: default
+  source:
+    repoURL: https://prometheus-community.github.io/helm-charts
+    chart: prometheus
+    targetRevision: 27.8.0
+    helm:
+      values: |
+        server:
+          extraScrapeConfigs:
+            - job_name: 'otel-collector'
+              static_configs:
+                - targets: ['otel-colector.otel-colector:8889']
+          extraScrapeConfigsSecret:
+            enabled: true
+          persistentVolume:
+            enabled: true
+            size: 10Gi
+        alertmanager:
+          enabled: true
+        pushgateway:
+          enabled: false
+        ingress:
+          enabled: true
+          ingressClassName: nginx
+          annotations: {}
+          labels: {}
+          path: /
+          pathType: Prefix
+          hosts:
+            - prometheus.k8s.local
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: monitoring
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true
+    syncOptions:
+      - CreateNamespace=true

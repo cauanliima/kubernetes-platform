@@ -8,7 +8,7 @@ spec:
   source:
     repoURL: https://open-telemetry.github.io/opentelemetry-helm-charts
     chart: opentelemetry-operator
-    targetRevision: latest  # ou defina uma versão específica, como "0.43.0"
+    targetRevision: 0.86.0
     helm:
       values: |
         manager:

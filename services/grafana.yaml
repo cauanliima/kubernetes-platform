@@ -17,17 +17,16 @@ spec:
   source:
     repoURL: https://grafana.github.io/helm-charts
     chart: grafana
-    targetRevision: 11.6.0
+    targetRevision: 8.12.0
     helm:
       values: |
-        admin:
-          user: "admin"
-          password: "admin@123"  # Troque por uma senha forte
         ingress:
           enabled: true
           ingressClassName: nginx
           hosts:
-                - grafana.tce.rn.gov.br
+                - grafana.local
+        service:
+          type: NodePort
         datasources:
           datasources.yaml:
             apiVersion: 1
@@ -35,7 +34,7 @@ spec:
               - name: Prometheus
                 type: prometheus
                 access: proxy
-                url: http://prometheus-server.monitoring.svc.cluster.local
+                url: http://prometheus-server.prometheus.svc.cluster.local
                 isDefault: true
                 editable: true
         dashboards:

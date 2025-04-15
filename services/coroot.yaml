@@ -26,6 +26,9 @@ spec:
               hostname: coroot.local
             persistentVolume:
               size: 5Gi
+            service:
+              type: NodePort
+              nodePort: 30180
           prometheus:
             server:
               persistentVolume:

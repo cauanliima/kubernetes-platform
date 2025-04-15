@@ -19,3 +19,7 @@ argocd:
       enabled: true
       ingressClassName: "nginx"
       hostname: "argo.local"
+    service:
+      type: NodePort
+      nodePortHttp: 30080
+      nodePortHttps: 30443

@@ -6,9 +6,9 @@ metadata:
 spec:
   project: default
   source:
-    repoURL: https://charts.bitnami.com/bitnami
-    chart: grafana-tempo
-    targetRevision: 4.0.2
+    repoURL: https://grafana.github.io/helm-charts
+    chart: tempo
+    targetRevision: 1.21.0
     helm:
       values: |
         # Aqui você pode adicionar valores personalizados, se necessário

@@ -22,7 +22,7 @@ spec:
             otlphttp/tempo:
               endpoint: "http://grafana-tempo.grafana-tempo:4318"
             otlphttp/coroot:
-              endpoint: "http://coroot.coroot"
+              endpoint: "http://coroot.coroot:8080"
               encoding: proto
               headers:
                 "x-api-key": ""
@@ -85,7 +85,7 @@ spec:
                     scrape_interval: 10s
                     static_configs:
                       - targets:
-                          - otel-operator-opentelemetry-operator.otel-operator:8080
+                          - opentelemetry-operator.opentelemetry:8080
           service:
             telemetry:
               metrics:
@@ -124,6 +124,18 @@ spec:
                   - batch
                 receivers:
                   - otlp
+        ports:
+          metrics:
+            enabled: true
+            containerPort: 8888
+            servicePort: 8888
+            protocol: TCP
+          data-exp:
+            enabled: true
+            containerPort: 8889
+            servicePort: 8889
+            hostPort: 8889
+            protocol: TCP
   destination:
     server: https://kubernetes.default.svc
     namespace: opentelemetry

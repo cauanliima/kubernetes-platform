@@ -12,42 +12,41 @@ spec:
     helm:
       valueFiles: []
       values: |
-        coroot:
-          corootCE:
-            enabled: true
-            bootstrap:
-              clickhouse:
-                database: default
-                username: default
-                password: admin@123
-            ingress:
-              enabled: true
-              className: nginx
-              hostname: coroot.local
-            persistentVolume:
-              size: 5Gi
-            service:
-              type: NodePort
-              nodePort: 30180
-          prometheus:
-            server:
-              persistentVolume:
-                size: 5Gi
-          clickhouse:
-            enabled: true
-            auth:
+        corootCE:
+          enabled: true
+          bootstrap:
+            clickhouse:
+              database: default
               username: default
               password: admin@123
-            persistence:
-              size: 10Gi
-          node-agent:
-            resources:
-              requests:
-                cpu: "100m"
-                memory: "50Mi"
-              limits:
-                cpu: "1"
-                memory: "2Gi"
+          ingress:
+            enabled: true
+            className: nginx
+            hostname: coroot.local
+          persistentVolume:
+            size: 5Gi
+          service:
+            type: NodePort
+            nodePort: 30180
+        prometheus:
+          server:
+            persistentVolume:
+              size: 5Gi
+        clickhouse:
+          enabled: true
+          auth:
+            username: default
+            password: admin@123
+          persistence:
+            size: 10Gi
+        node-agent:
+          resources:
+            requests:
+              cpu: "100m"
+              memory: "50Mi"
+            limits:
+              cpu: "1"
+              memory: "2Gi"
   destination:
     server: https://kubernetes.default.svc
     namespace: coroot

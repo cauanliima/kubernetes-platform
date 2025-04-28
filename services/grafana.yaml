@@ -21,7 +21,7 @@ spec:
     helm:
       values: |
         ingress:
-          enabled: true
+          enabled: false
           ingressClassName: nginx
           hosts:
                 - grafana.local
@@ -33,17 +33,20 @@ spec:
             datasources:
               - name: Prometheus
                 type: prometheus
+                uid: PBFA97CFB590B2093
                 access: proxy
                 url: http://prometheus-server.prometheus.svc.cluster.local
                 isDefault: true
-                editable: true
+                editable: false
+              - name: Tempo
+                type: tempo
+                access: proxy
+                url: http://grafana-tempo.grafana-tempo:3100
+                isDefault: false
+                editable: false
         dashboards:
-          teste:
-            teste:
-              json: |
-                {
-                  "title": "Meu Dashboard",
-                  "panels": [],
-                  "schemaVersion": 30,
-                  "version": 1
-                }
+          default:
+            my-dashboard:
+              gnetId: 19419   # ID do dashboard no grafana.com
+              revision: 1     # Você pode especificar uma revisão, ou omitir para pegar a última
+              datasource: Prometheus # ou o nome do datasource que seu dashboard vai usar

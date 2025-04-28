@@ -19,6 +19,7 @@ spec:
             enabled: false
           autoGenerateCert:
             enabled: true
+            recreate: true
   destination:
     server: https://kubernetes.default.svc
     namespace: opentelemetry-operator

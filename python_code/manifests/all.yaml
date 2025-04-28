@@ -1,0 +1,56 @@
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: app
+
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: python-app
+  namespace: app
+  labels:
+    app: python-app
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: python-app
+  template:
+    metadata:
+      labels:
+        app: python-app
+      annotations:
+
+        instrumentation.opentelemetry.io/inject-python: 'opentelemetry/instrumentation'
+        vault.hashicorp.com/agent-inject: "true"
+        vault.hashicorp.com/role: "app-python-role"
+        vault.hashicorp.com/agent-inject-template-json: |
+          {{- with secret "app/data/python" -}}
+          {{ .Data.data | toJSON }}
+          {{- end }}
+    spec:
+      containers:
+      - name: python-app
+        image: cauanlima/app-python:v1.0.2
+        ports:
+        - containerPort: 8200
+
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: python-app-service
+  namespace: app
+  labels:
+    app: python-app
+spec:
+  type: NodePort  # <-- Mudei para NodePort
+  selector:
+    app: python-app
+  ports:
+    - protocol: TCP
+      port: 8000         # <-- Corrigido! Seu app FastAPI escuta na 8000, não 8200
+      targetPort: 8000   # <-- Corrigido para o container também na 8000
+      nodePort: 31001    # <-- Porta fixa exposta no nó
+

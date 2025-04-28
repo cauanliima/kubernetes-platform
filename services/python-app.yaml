@@ -1,0 +1,21 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: python-app
+  namespace: argo   # Namespace onde o ArgoCD está instalado (normalmente é "argocd")
+spec:
+  project: default
+  source:
+    repoURL: 'https://github.com/cauanliima/kubernetes-platform.git' # <-- o repositório Git onde seu YAML está
+    targetRevision: HEAD  # Pode ser uma branch específica, tag, commit
+    path: python_code/manifests # <-- caminho até a pasta onde estão esses YAMLs (Namespace, Deployment, Service)
+  destination:
+    server: 'https://kubernetes.default.svc'
+    namespace: app  # namespace onde os recursos serão criados
+  syncPolicy:
+    automated:       # Opcional: para sincronizar automaticamente
+      prune: true    # Deletar recursos que foram removidos do Git
+      selfHeal: true # Corrigir recursos que foram mudados manualmente
+    syncOptions:
+      - CreateNamespace=true # Cria o namespace automaticamente se não existir
+

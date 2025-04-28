@@ -20,7 +20,7 @@ spec:
               username: default
               password: admin@123
           ingress:
-            enabled: true
+            enabled: false
             className: nginx
             hostname: coroot.local
           persistentVolume:

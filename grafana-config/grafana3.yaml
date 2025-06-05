@@ -1,0 +1,60 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: grafana
+  namespace: argo  # namespace onde o Argo CD está instalado
+spec:
+  project: default
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: grafana
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true
+    syncOptions:
+      - CreateNamespace=true
+  source:
+    repoURL: https://grafana.github.io/helm-charts
+    chart: grafana
+    targetRevision: 8.12.0
+    helm:
+      values: |
+        ingress:
+          enabled: false
+          ingressClassName: nginx
+          hosts:
+                - grafana.local
+        service:
+          type: NodePort
+        datasources:
+          datasources.yaml:
+            apiVersion: 1
+            datasources:
+              - name: Prometheus
+                type: prometheus
+                uid: PBFA97CFB590B2093
+                access: proxy
+                url: http://prometheus-server.prometheus.svc.cluster.local
+                isDefault: true
+                editable: false
+              - name: Tempo
+                type: tempo
+                access: proxy
+                url: http://grafana-tempo.grafana-tempo:3100
+                isDefault: false
+                editable: false
+        dashboardProviders:
+          dashboardproviders.yaml:
+            apiVersion: 1
+            providers:
+              - name: 'default'
+                orgId: 1
+                folder: ''
+                type: file
+                disableDeletion: false
+                updateIntervalSeconds: 10
+                options:
+                  path: /var/lib/grafana/dashboards/default
+        dashboardsConfigMaps:
+          - grafana-dashboard-sample

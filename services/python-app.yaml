@@ -6,9 +6,9 @@ metadata:
 spec:
   project: default
   source:
-    repoURL: 'https://github.com/cauanliima/kubernetes-platform.git' # <-- o repositório Git onde seu YAML está
+    repoURL: 'https://github.com/cauanliima/python-k8s-vault.git' # <-- o repositório Git onde seu YAML está
     targetRevision: HEAD  # Pode ser uma branch específica, tag, commit
-    path: python_app/manifests # <-- caminho até a pasta onde estão esses YAMLs (Namespace, Deployment, Service)
+    path: manifests # <-- caminho até a pasta onde estão esses YAMLs (Namespace, Deployment, Service)
   destination:
     server: 'https://kubernetes.default.svc'
     namespace: app  # namespace onde os recursos serão criados

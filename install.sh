@@ -4,24 +4,22 @@ wait_for_app_ready() {
   local APP_NAME="$1"
   local NAMESPACE="argo"
 
-  echo "Aguardando o aplicativo '$APP_NAME' no namespace '$NAMESPACE' atingir o estado desejado..."
+  echo "Aguardando a aplicação '$APP_NAME' no namespace '$NAMESPACE' ficar Healthy..."
 
   while true; do
     STATUS=$(kubectl get application "$APP_NAME" -n "$NAMESPACE" -o json 2>/dev/null)
 
     if [ -z "$STATUS" ]; then
-      echo "Aplicação '$APP_NAME' não encontrada no namespace '$NAMESPACE'."
+      echo "⚠️ Aplicação '$APP_NAME' não encontrada no namespace '$NAMESPACE'."
       sleep 5
       continue
     fi
 
-    SYNC_STATUS=$(echo "$STATUS" | jq -r '.status.sync.status')
     HEALTH_STATUS=$(echo "$STATUS" | jq -r '.status.health.status')
+    echo "Status atual - Health: $HEALTH_STATUS"
 
-    echo "Sync: $SYNC_STATUS | Health: $HEALTH_STATUS"
-
-    if [[ "$SYNC_STATUS" == "$HEALTH_STATUS" ]]; then
-      echo "✅ A aplicação '$APP_NAME' atingiu o estado desejado: $SYNC_STATUS"
+    if [[ "$HEALTH_STATUS" == "Healthy" ]]; then
+      echo "✅ Aplicação '$APP_NAME' está Healthy."
       break
     fi
 
@@ -70,33 +68,28 @@ while true; do
     fi
 done
 
-# Obter o token do cluster para os workers se conectarem
-sudo cat /var/lib/rancher/rke2/server/node-token
 
 # Configurar o kubeconfig
 mkdir -p ~/.kube
 sudo cp /etc/rancher/rke2/rke2.yaml ~/.kube/config
 sudo chown $(id -u):$(id -g) ~/.kube/config
 
-echo "Cluster RKE2 server instalado com sucesso!"
-echo "Use o seguinte token nos nós workers:"
-sudo cat /var/lib/rancher/rke2/server/node-token
-
-
+#Configurar provisionardor de volumes
 mkdir /opt/local-path-provisioner
 kubectl apply -f https://raw.githubusercontent.com/rancher/local-path-provisioner/v0.0.31/deploy/local-path-storage.yaml
-
 kubectl patch storageclass local-path -p '{"metadata": {"annotations":{"storageclass.kubernetes.io/is-default-class":"true"}}}'
 
-echo "Instalando ArgoCD"
+echo "Instalando ArgoCD no cluster"
 helm dependency build argocd
 helm upgrade -i argocd -n argo ./argocd --create-namespace --wait --timeout 5m
 
+# Adicionar chart do dotnet-k8s-math no chartmuseum
 helm plugin install https://github.com/chartmuseum/helm-push.git
 helm repo add --username admin --password cauan@123 chartmuseum http://localhost:32180
 helm cm-push dotnet-k8s-math/chart chartmuseum
 
-echo "Instalando serviços"
+#Instalar serviços no cluster
+echo "Instalando serviços no cluster"
 DIRETORIO=("services")
 for dir in "${DIRETORIO[@]}"; do
   # Verificar se o diretório existe
@@ -114,12 +107,11 @@ done
 
 # Configurar intrumentation de serviços
 wait_for_app_ready "cert-manager"
-
 kubectl apply -f manifests/intrumentation.yaml
 
+#reiniciar serviços que usam instrumentação
 kubectl rollout restart deployment -n python-k8s-vault
 kubectl rollout restart deployment -n dotnet-k8s-math
-
 
 #Configuração vault
 wait_for_app_ready "vault"
@@ -155,3 +147,8 @@ EOF
 #Avisos
 echo "Acesse o argocd IP:30080"
 echo "Configuração finalizada, após is serviços subirem efetue a configuração do vault e do grafana"
+
+echo "Cluster RKE2 server instalado com sucesso!"
+echo "Use o seguinte token nos nós workers:"
+sudo cat /var/lib/rancher/rke2/server/node-token
+

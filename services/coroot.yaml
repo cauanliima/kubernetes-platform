@@ -8,7 +8,7 @@ spec:
   source:
     repoURL: https://coroot.github.io/helm-charts
     chart: coroot
-    targetRevision: 0.15.15
+    targetRevision: 0.20.3 
     helm:
       valueFiles: []
       values: |

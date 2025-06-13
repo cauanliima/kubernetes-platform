@@ -1,17 +1,17 @@
 apiVersion: argoproj.io/v1alpha1
 kind: Application
 metadata:
-  name: ingress-nginx
-  namespace: argo  # Namespace onde o Argo CD está instalado
+  name: dotnet-k8s-math
+  namespace: argo
 spec:
   project: default
   source:
-    repoURL: https://kubernetes.github.io/ingress-nginx
-    chart: ingress-nginx
-    targetRevision: v1.12.3
+    repoURL: http://chartmuseum.chartmuseum:8080
+    chart: dotnet-k8s-math-chart
+    targetRevision: 0.1.0
   destination:
     server: https://kubernetes.default.svc
-    namespace: ingress-nginx
+    namespace: dotnet-k8s-math
   syncPolicy:
     automated:
       prune: true

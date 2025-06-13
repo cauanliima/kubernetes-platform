@@ -1,23 +1,24 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: dotnet-math-api
+  name: dotnet-k8s-math
+  namespace: dotnet-k8s-math
   labels:
-    app: dotnet-math
+    app: dotnet-k8s-math
 spec:
   replicas: 1
   selector:
     matchLabels:
-      app: dotnet-math
+      app: dotnet-k8s-math
   template:
     metadata:
       labels:
-        app: dotnet-math
+        app: dotnet-k8s-math
       annotations:
         instrumentation.opentelemetry.io/inject-dotnet: 'opentelemetry/instrumentation'
     spec:
       containers:
-      - name: dotnet-math-container
+      - name: dotnet-k8s-math-container
         image: cauanlima/dotnet-k8s-math:v1.0.6
         ports:
         - containerPort: 80
@@ -39,10 +40,11 @@ spec:
 apiVersion: v1
 kind: Service
 metadata:
-  name: dotnet-math-service
+  name: dotnet-k8s-math
+  namespace: dotnet-k8s-math
 spec:
   selector:
-    app: dotnet-math
+    app: dotnet-k8s-math
   type: NodePort
   ports:
     - protocol: TCP

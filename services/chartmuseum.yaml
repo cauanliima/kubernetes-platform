@@ -11,20 +11,22 @@ spec:
     targetRevision: 3.10.3  # versão específica do chart
     helm:
       values: |
-        chartmuseum:
-          env:
-            open:
-              DISABLE_API: false
-            secret:
-              BASIC_AUTH_USER: admin
-              BASIC_AUTH_PASS: cauan@123
-          ingress:
-            enabled: true
-            hosts:
-              - name: museum.local
-                path: /
-          persistence:
-            enabled: true
+        env:
+          open:
+            DISABLE_API: false
+          secret:
+            BASIC_AUTH_USER: admin
+            BASIC_AUTH_PASS: cauan@123
+        ingress:
+          enabled: true
+          hosts:
+            - name: museum.local
+              path: /
+        persistence:
+          enabled: false
+        service:
+          type: NodePort
+          nodePort: 32180
   destination:
     server: https://kubernetes.default.svc
     namespace: chartmuseum

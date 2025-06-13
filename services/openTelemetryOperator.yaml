@@ -8,7 +8,7 @@ spec:
   source:
     repoURL: https://open-telemetry.github.io/opentelemetry-helm-charts
     chart: opentelemetry-operator
-    targetRevision: 0.86.0
+    targetRevision: 0.90.3
     helm:
       values: |
         manager:
@@ -16,13 +16,13 @@ spec:
             repository: otel/opentelemetry-collector-k8s
         admissionWebhooks:
           certManager:
-            enabled: false
-          autoGenerateCert:
             enabled: true
-            recreate: true
+          autoGenerateCert:
+            enabled: false
+            recreate: false
   destination:
     server: https://kubernetes.default.svc
-    namespace: opentelemetry-operator
+    namespace: opentelemetry
   syncPolicy:
     automated:
       prune: true

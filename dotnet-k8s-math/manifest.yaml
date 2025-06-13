@@ -1,0 +1,52 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: dotnet-math-api
+  labels:
+    app: dotnet-math
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: dotnet-math
+  template:
+    metadata:
+      labels:
+        app: dotnet-math
+      annotations:
+        instrumentation.opentelemetry.io/inject-dotnet: 'opentelemetry/instrumentation'
+    spec:
+      containers:
+      - name: dotnet-math-container
+        image: cauanlima/dotnet-k8s-math:v1.0.6
+        ports:
+        - containerPort: 80
+        readinessProbe:
+          httpGet:
+            path: /healthz
+            port: 80
+          initialDelaySeconds: 5
+          periodSeconds: 10
+        livenessProbe:
+          httpGet:
+            path: /healthz
+            port: 80
+          initialDelaySeconds: 15
+          periodSeconds: 20
+
+---
+
+apiVersion: v1
+kind: Service
+metadata:
+  name: dotnet-math-service
+spec:
+  selector:
+    app: dotnet-math
+  type: NodePort
+  ports:
+    - protocol: TCP
+      port: 80
+      targetPort: 80
+      nodePort: 31002
+

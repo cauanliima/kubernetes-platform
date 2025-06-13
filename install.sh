@@ -13,7 +13,7 @@ sudo systemctl start rke2-server.service
 
 # Aguardar o RKE2 iniciar
 echo "Aguardando o RKE2 iniciar..."
-sleep 20
+sleep 60
 
 # Obter o token do cluster para os workers se conectarem
 sudo cat /var/lib/rancher/rke2/server/node-token
@@ -43,12 +43,18 @@ chmod +x  linux-amd64/helm
 mv  linux-amd64/helm /bin
 rm -r linux-amd64
 
+mkdir /opt/local-path-provisioner
+kubectl apply -f https://raw.githubusercontent.com/rancher/local-path-provisioner/v0.0.31/deploy/local-path-storage.yaml
+kubectl patch storageclass local-path -p '{"metadata": {"annotations":{"storageclass.kubernetes.io/is-default-class":"true"}}}'
+kubectl apply -f https://github.com/cert-manager/cert-manager/releases/download/v1.14.3/cert-manager.yaml
+
 echo "Instalando ArgoCD"
 helm dependency build argocd
 helm upgrade -i argocd -n argo ./argocd --create-namespace
 
 echo "Instalando serviços"
-DIRETORIO=("serviços" "manifests")
+DIRETORIO=("services,manifests")
+#DIRETORIO=("services")
 for dir in "${DIRETORIO[@]}"; do
   # Verificar se o diretório existe
   if [ -d "$dir" ]; then
@@ -62,5 +68,9 @@ for dir in "${DIRETORIO[@]}"; do
     done
   fi
 done
+sleep 15
 
-echo "Configuração finalizada, efetue a configuração do vault e do grafana"
+kubectl apply -f manifests/intrumentation.yaml
+
+echo "Acesse o argocd IP:30080"
+echo "Configuração finalizada, após is serviços subirem efetue a configuração do vault e do grafana"

@@ -1,0 +1,37 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: chartmuseum
+  namespace: argo  # Namespace onde o Argo CD está instalado
+spec:
+  project: default
+  source:
+    repoURL: https://chartmuseum.github.io/charts
+    chart: chartmuseum
+    targetRevision: 3.10.3  # versão específica do chart
+    helm:
+      values: |
+        chartmuseum:
+          env:
+            open:
+              DISABLE_API: false
+            secret:
+              BASIC_AUTH_USER: admin
+              BASIC_AUTH_PASS: cauan@123
+          ingress:
+            enabled: true
+            hosts:
+              - name: museum.local
+                path: /
+          persistence:
+            enabled: true
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: chartmuseum
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true
+    syncOptions:
+      - CreateNamespace=true
+

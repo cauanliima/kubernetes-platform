@@ -9,7 +9,7 @@ argocd:
       server.disable.auth: true
     repositories:
       museum-auth:
-        url: museum.local
+        url: http://chartmuseum.chartmuseum:8080
         name: museum
         type: helm
         password: cauan@123

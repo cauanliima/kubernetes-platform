@@ -1,7 +1,7 @@
 apiVersion: argoproj.io/v1alpha1
 kind: Application
 metadata:
-  name: python-app
+  name: python-k8s-vault
   namespace: argo   # Namespace onde o ArgoCD está instalado (normalmente é "argocd")
 spec:
   project: default

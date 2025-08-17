@@ -11,7 +11,7 @@ spec:
     path: manifests # <-- caminho até a pasta onde estão esses YAMLs (Namespace, Deployment, Service)
   destination:
     server: 'https://kubernetes.default.svc'
-    namespace: app  # namespace onde os recursos serão criados
+    namespace: python-k8s-vault
   syncPolicy:
     automated:       # Opcional: para sincronizar automaticamente
       prune: true    # Deletar recursos que foram removidos do Git

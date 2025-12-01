@@ -1,0 +1,78 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: app-500
+  labels:
+    app: app-500
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: app-500
+  template:
+    metadata:
+      labels:
+        app: app-500
+    spec:
+      containers:
+      - name: app-500
+        image: tiangolo/uwsgi-nginx-flask:python3.11
+        command: ["/bin/sh", "-c"]
+        args:
+          - |
+            cat > /app/main.py <<'PY'
+            from flask import Flask
+            app = Flask(__name__)
+            @app.route('/')
+            def ok():
+                return "ok", 200
+            @app.route('/error')
+            def err():
+                return "internal error", 500
+            if __name__ == "__main__":
+                app.run(host="0.0.0.0", port=80)
+            PY
+            python /app/main.py
+        ports:
+        - containerPort: 80
+        resources:
+          requests:
+            cpu: "50m"
+            memory: "64Mi"
+          limits:
+            cpu: "100m"
+            memory: "128Mi"
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: svc-app-500
+spec:
+  selector:
+    app: app-500
+  ports:
+  - name: http
+    port: 80
+    targetPort: 80
+---
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: gerar-erros-500
+spec:
+  template:
+    spec:
+      containers:
+      - name: loadgen
+        image: curlimages/curl
+        command: ["/bin/sh", "-c"]
+        args:
+          - |
+            echo "Gerando 500 requisições com erro 500...";
+            for i in $(seq 1 500); do
+              curl -s -o /dev/null -w "%{http_code}\n" http://svc-app-500/error;
+            done
+            echo "Carga concluída.";
+      restartPolicy: Never
+  backoffLimit: 0
+

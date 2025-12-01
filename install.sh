@@ -48,7 +48,7 @@ sudo sed -i '/^[^#].*swap/ s/^/#/' /etc/fstab
 echo "Instalar RKE2"
 curl -sfL https://get.rke2.io | sh -
 
-echp "Ativar o serviço rke2-server"
+echo "Ativar o serviço rke2-server"
 sudo systemctl enable rke2-server.service
 sudo systemctl start rke2-server.service
 
@@ -139,7 +139,7 @@ vault write auth/kubernetes/config \
 
 vault secrets enable -path=app -version=2 kv
 
-vault kv put app/python teste="teste"
+vault kv put app/python MONGODB_URI="mongodb://usuario:senha@mongo-service:27017/calculator?authSource=admin"
 
 vault policy write app-python-policy - <<EOP
 path "app/data/python" {
@@ -149,7 +149,7 @@ EOP
 
 vault write auth/kubernetes/role/app-python-role \
   bound_service_account_names="*" \
-  bound_service_account_namespaces=python-k8s-vault \
+  bound_service_account_namespaces="*" \
   policies=app-python-policy \
   ttl=24h
 EOF

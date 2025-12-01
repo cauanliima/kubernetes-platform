@@ -1,0 +1,55 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: zabbix
+  namespace: argo
+spec:
+  project: default
+
+  source:
+    repoURL: https://zabbix-community.github.io/helm-zabbix
+    chart: zabbix
+    targetRevision: 5.0.2
+    helm:
+      values: |
+        zabbixServer:
+          extraEnv:
+            - name: ZBX_CACHESIZE
+              value: "128M"
+            - name: ZBX_VALUECACHESIZE
+              value: "128M"
+            - name: ZBX_HISTORYSTORAGEPERIOD
+              value: "7"
+            - name: ZBX_TRENDSSTORAGEPERIOD
+              value: "7"
+          resources:
+            limits:
+              cpu: "2"
+              memory: "233Mi"
+            requests:
+              cpu: "20m"
+              memory: "233Mi"
+          service:
+            type: NodePort
+            nodePort: 30580   # opcional — remova se quiser que o Kubernetes escolha
+        postgresql:
+          enabled: true
+          persistence:
+            enabled: true
+          resources:
+            limits:
+              cpu: "2"
+              memory: "1429Mi"
+            requests:
+              cpu: "50m"
+              memory: "1429Mi"
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: monitoring
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true
+    syncOptions:
+      - CreateNamespace=true
+

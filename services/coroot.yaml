@@ -33,6 +33,8 @@ spec:
             persistentVolume:
               size: 5Gi
         clickhouse:
+          image:
+            repository: bitnamilegacy/clickhouse 
           enabled: true
           auth:
             username: default

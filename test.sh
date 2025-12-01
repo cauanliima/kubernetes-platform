@@ -1,5 +1,5 @@
 # dotnet-k8s-math 
-curl -X POST http://localhost:31002/Math/multiply -H "Content-Type: application/json" -d '{"x":2,"y":3}'
+curl -X POST http://localhost:31002/Math/multiply -H "Content-Type: application/json" -d '{"x":2.12315,"y":3.12584845}'
 # {"result":6}
 curl -X POST http://localhost:31002/Math/power -H "Content-Type: application/json" -d '{"x":7,"y":300}'
 # {"result":3.38385702007491E+253}
@@ -7,5 +7,5 @@ curl -X POST http://localhost:31002/Math/power -H "Content-Type: application/jso
 # python-k8s-vault
 curl http://localhost:31001/teste
 # {"teste":"teste"}
-curl http://localhost:31001/teste2
+# curl http://localhost:31001/teste2
 # {"detail":"Not Found"}

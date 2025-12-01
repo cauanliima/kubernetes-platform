@@ -1,0 +1,42 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: stress-test
+  namespace: default
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: stress-test
+  template:
+    metadata:
+      labels:
+        app: stress-test
+    spec:
+      containers:
+      - name: stress
+        image: polinux/stress
+        # Simula alto uso de CPU e memória
+        command: ["stress"]
+        args:
+          [
+            "--cpu", "2",              # número de workers de CPU
+            "--vm", "2",               # número de workers de memória
+            "--vm-bytes", "512M",      # cada worker consome 512MB
+            "--timeout", "30000s"        # duração do teste
+          ]
+        resources:
+          limits:
+            cpu: "4.4"       # meio núcleo (limite baixo)
+            memory: "1.2Gi"   # limite de memória (provável OOMKill)
+          requests:
+            cpu: "100m"
+            memory: "128Mi"
+        volumeMounts:
+          - name: disk-stress
+            mountPath: /data
+      volumes:
+        - name: disk-stress
+          emptyDir:
+            sizeLimit: 512Mi  # limita uso de disco temporário
+

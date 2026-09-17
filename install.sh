@@ -34,59 +34,39 @@ wait_for_app_ready() {
   done
 }
 
-echo "Instalar dependências"
+echo "Instalando dependências"
 sudo apt-get update -y
-sudo apt-get install -y curl wget tar jq
+sudo apt-get install -y curl wget tar jq docker.io
 
-echo "Desabilitando swap temporariamente"
-sudo swapoff -a
-# Faz backup do fstab antes
-sudo cp /etc/fstab /etc/fstab.bak.$(date +%F-%T)
-# Comentando linhas de swap no /etc/fstab para desabilitar permanentemente
-sudo sed -i '/^[^#].*swap/ s/^/#/' /etc/fstab
+echo "Instalando kubectl e Helm"
+sudo apt-get install -y kubectl helm
 
-echo "Instalar RKE2"
-curl -sfL https://get.rke2.io | sh -
+echo "Habilitando Docker"
+sudo systemctl enable docker
+sudo systemctl start docker
 
-echo "Ativar o serviço rke2-server"
-sudo systemctl enable rke2-server.service
-sudo systemctl start rke2-server.service
+echo "Adicionando usuário ao grupo docker"
+sudo usermod -aG docker "$USER"
 
-# Instalando serviços e programas
-echo "Instalando o kubectl"
-curl -LO "https://dl.k8s.io/release/$(curl -L -s https://dl.k8s.io/release/stable.txt)/bin/linux/amd64/kubectl"
-chmod +x kubectl
-mv kubectl /bin/
+echo "Instalando Minikube"
+curl -LO https://storage.googleapis.com/minikube/releases/latest/minikube-linux-amd64
+sudo install minikube-linux-amd64 /usr/local/bin/minikube
+rm minikube-linux-amd64
 
+echo "Iniciando Minikube"
+newgrp docker <<EOF
+minikube start --driver=docker --container-runtime=containerd
+EOF
 
-echo "Instalando Helm"
-wget https://get.helm.sh/helm-v3.14.2-linux-amd64.tar.gz
-tar -zxvf helm-v3.14.2-linux-amd64.tar.gz
-rm helm-v3.14.2-linux-amd64.tar.gz
-chmod +x  linux-amd64/helm
-mv  linux-amd64/helm /bin
-rm -r linux-amd64
+echo "Verificando cluster"
+kubectl get nodes
 
-echo "Aguardando o serviço rke2-server ficar ativo..."
-while true; do
-    STATUS=$(systemctl is-active rke2-server)
+echo "Contexto atual:"
+kubectl config current-context
 
-    if [ "$STATUS" = "active" ]; then
-        echo "✅ Serviço rke2-server está ativo!"
-        break
-    else
-        echo "⏳ Status atual: $STATUS. Verificando novamente em 2 segundos..."
-        sleep 2
-    fi
-done
+echo "Instalação do cluster concluída!"
 
-
-echo "Configurar o kubeconfig"
-mkdir -p ~/.kube
-sudo cp /etc/rancher/rke2/rke2.yaml ~/.kube/config
-sudo chown $(id -u):$(id -g) ~/.kube/config
-
-echo "Configurar provisionardor de volumes"
+echo "Configurando provisionardor de volumes"
 mkdir /opt/local-path-provisioner
 kubectl apply -f https://raw.githubusercontent.com/rancher/local-path-provisioner/v0.0.31/deploy/local-path-storage.yaml
 kubectl patch storageclass local-path -p '{"metadata": {"annotations":{"storageclass.kubernetes.io/is-default-class":"true"}}}'
@@ -112,13 +92,13 @@ for dir in "${DIRETORIO[@]}"; do
   fi
 done
 
-echo "Adicionar chart do dotnet-k8s-math no chartmuseum"
+echo "Adicionando chart do dotnet-k8s-math no chartmuseum"
 wait_for_app_ready "chartmuseum"
 helm plugin install https://github.com/chartmuseum/helm-push.git
 helm repo add --username admin --password cauan@123 chartmuseum http://localhost:32180
 helm cm-push dotnet-k8s-math/chart chartmuseum -f
 
-echo "Configurar intrumentation de serviços"
+echo "Configurando instrumentação de serviços"
 wait_for_app_ready "cert-manager"
 kubectl apply -f services/openTelemetryOperator/service.yaml
 wait_for_app_ready "opentelemetry-operator"
@@ -154,7 +134,7 @@ vault write auth/kubernetes/role/app-python-role \
   ttl=24h
 EOF
 
-echo "reiniciar serviços que usam vault, instrumentação e chartmuseum"
+echo "reiniciando serviços que usam vault, instrumentação e chartmuseum"
 kubectl rollout restart deployment -n python-k8s-vault
 kubectl rollout restart deployment -n dotnet-k8s-math
 

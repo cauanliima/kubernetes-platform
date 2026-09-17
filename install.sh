@@ -36,7 +36,41 @@ wait_for_app_ready() {
 
 echo "Instalando dependências"
 sudo apt-get update -y
-sudo apt-get install -y curl wget tar jq docker.io
+sudo apt-get install -y curl wget tar jq
+
+echo "Desabilitando swap temporariamente"
+sudo swapoff -a
+# Faz backup do fstab antes
+sudo cp /etc/fstab /etc/fstab.bak.$(date +%F-%T)
+# Comentando linhas de swap no /etc/fstab para desabilitar permanentemente
+sudo sed -i '/^[^#].*swap/ s/^/#/' /etc/fstab
+
+echo "Instalando RKE2"
+curl -sfL https://get.rke2.io | sh -
+
+echo "Ativando o serviço rke2-server"
+sudo systemctl enable rke2-server.service
+sudo systemctl start rke2-server.service
+
+echo "Aguardando o serviço rke2-server ficar ativo..."
+while true; do
+    STATUS=$(systemctl is-active rke2-server)
+
+    if [ "$STATUS" = "active" ]; then
+        echo "✅ Serviço rke2-server está ativo!"
+        break
+    else
+        echo "⏳ Status atual: $STATUS. Verificando novamente em 2 segundos..."
+        sleep 2
+    fi
+done
+
+echo "Configurar o kubeconfig"
+mkdir -p ~/.kube
+sudo cp /etc/rancher/rke2/rke2.yaml ~/.kube/config
+sudo chown $(id -u):$(id -g) ~/.kube/config
+
+echo "Instalação do cluster concluída!"
 
 echo "Instalando o kubectl"
 curl -LO "https://dl.k8s.io/release/$(curl -L -s https://dl.k8s.io/release/stable.txt)/bin/linux/amd64/kubectl"
@@ -50,31 +84,6 @@ rm helm-v3.14.2-linux-amd64.tar.gz
 chmod +x  linux-amd64/helm
 mv  linux-amd64/helm /bin
 rm -r linux-amd64
-
-echo "Habilitando Docker"
-sudo systemctl enable docker
-sudo systemctl start docker
-
-echo "Adicionando usuário ao grupo docker"
-sudo usermod -aG docker "$USER"
-
-echo "Instalando Minikube"
-curl -LO https://storage.googleapis.com/minikube/releases/latest/minikube-linux-amd64
-sudo install minikube-linux-amd64 /usr/local/bin/minikube
-rm minikube-linux-amd64
-
-echo "Iniciando Minikube"
-newgrp docker <<EOF
-minikube start --driver=docker --container-runtime=containerd
-EOF
-
-echo "Verificando cluster"
-kubectl get nodes
-
-echo "Contexto atual:"
-kubectl config current-context
-
-echo "Instalação do cluster concluída!"
 
 echo "Configurando provisionardor de volumes"
 mkdir /opt/local-path-provisioner

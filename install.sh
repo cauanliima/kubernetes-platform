@@ -38,8 +38,18 @@ echo "Instalando dependências"
 sudo apt-get update -y
 sudo apt-get install -y curl wget tar jq docker.io
 
-echo "Instalando kubectl e Helm"
-sudo apt-get install -y kubectl helm
+echo "Instalando o kubectl"
+curl -LO "https://dl.k8s.io/release/$(curl -L -s https://dl.k8s.io/release/stable.txt)/bin/linux/amd64/kubectl"
+chmod +x kubectl
+mv kubectl /bin/
+
+echo "Instalando Helm"
+wget https://get.helm.sh/helm-v3.14.2-linux-amd64.tar.gz
+tar -zxvf helm-v3.14.2-linux-amd64.tar.gz
+rm helm-v3.14.2-linux-amd64.tar.gz
+chmod +x  linux-amd64/helm
+mv  linux-amd64/helm /bin
+rm -r linux-amd64
 
 echo "Habilitando Docker"
 sudo systemctl enable docker

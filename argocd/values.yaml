@@ -6,7 +6,7 @@ argocd:
       timeout.reconciliation: 30s
     params:
       server.insecure: true
-      server.disable.auth: true
+      #server.disable.auth: true
     repositories:
       museum-auth:
         url: http://chartmuseum.chartmuseum:8080
@@ -18,8 +18,8 @@ argocd:
     ingress:
       enabled: true
       ingressClassName: "nginx"
-      hostname: "argo.local"
-    service:
-      type: NodePort
-      nodePortHttp: 30080
-      nodePortHttps: 30443
+      hostname: "argocd-172.173.159.166.nip.io"
+        #    service:
+        #      type: NodePort
+        #      nodePortHttp: 30080
+        #      nodePortHttps: 30443

@@ -2,29 +2,49 @@ apiVersion: argoproj.io/v1alpha1
 kind: Application
 metadata:
   name: vault
-  namespace: argo  # Namespace correto onde o Argo CD está instalado
+  namespace: argo
+
 spec:
   project: default
+
   source:
     repoURL: https://helm.releases.hashicorp.com
     chart: vault
     targetRevision: 0.28.1
+
     helm:
       valueFiles: []
       values: |
+        injector:
+          agentDefaults:
+            cpuLimit: "500m"
+            cpuRequest: ""
+            memLimit: "128Mi"
+            memRequest: "64Mi"
+
         server:
+          ingress:
+            enabled: true
+            ingressClassName: nginx
+            hosts:
+              - host: vault-172.173.159.166.nip.io
+
           service:
             type: NodePort
             nodePort: 30280
+
           dev:
             enabled: true
-            devRootToken: "cauan@123" 
+            devRootToken: "cauan@123"
+
   destination:
     server: https://kubernetes.default.svc
     namespace: vault
+
   syncPolicy:
     automated:
       prune: true
       selfHeal: true
+
     syncOptions:
       - CreateNamespace=true

@@ -21,12 +21,15 @@ spec:
     helm:
       values: |
         ingress:
-          enabled: false
+          enabled: true
           ingressClassName: nginx
           hosts:
-                - grafana.local
+            - grafana-172.173.159.166.nip.io
         service:
           type: NodePort
+        server:
+          root_url: http://grafana-172.173.159.166.nip.io:30080/
+          serve_from_sub_path: false
         datasources:
           datasources.yaml:
             apiVersion: 1

@@ -12,6 +12,14 @@ spec:
     targetRevision: 5.0.2
     helm:
       values: |
+        ingress:
+          enabled: true
+          ingressClassName: nginx
+          hosts:
+            - host: zabbix-172.173.159.166.nip.io
+              paths:
+              - path: /
+                pathType: Prefix
         zabbixServer:
           extraEnv:
             - name: ZBX_CACHESIZE

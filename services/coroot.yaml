@@ -19,6 +19,13 @@ spec:
               database: default
               username: default
               password: admin@123
+          resources:
+            requests:
+              cpu: "0m"
+              memory: "50Mi"
+            limits:
+              cpu: "1"
+              memory: "2Gi"
           ingress:
             enabled: false
             className: nginx
@@ -32,6 +39,13 @@ spec:
           server:
             persistentVolume:
               size: 5Gi
+          resources:
+            requests:
+              cpu: "0m"
+              memory: "50Mi"
+            limits:
+              cpu: "1"
+              memory: "2Gi"
         clickhouse:
           image:
             repository: bitnamilegacy/clickhouse 
@@ -41,10 +55,18 @@ spec:
             password: admin@123
           persistence:
             size: 10Gi
+        corootClusterAgent:
+          resources:
+            requests:
+              cpu: "0m"
+              memory: "50Mi"
+            limits:
+              cpu: "1"
+              memory: "2Gi"
         node-agent:
           resources:
             requests:
-              cpu: "100m"
+              cpu: "0m"
               memory: "50Mi"
             limits:
               cpu: "1"

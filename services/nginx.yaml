@@ -2,19 +2,38 @@ apiVersion: argoproj.io/v1alpha1
 kind: Application
 metadata:
   name: ingress-nginx
-  namespace: argo  # Namespace onde o Argo CD está instalado
+  namespace: argo
 spec:
   project: default
+
   source:
     repoURL: https://kubernetes.github.io/ingress-nginx
     chart: ingress-nginx
-    targetRevision: v1.12.3
+    targetRevision: 4.15.1
+
+    helm:
+      values: |
+        controller:
+          resources:
+            requests:
+              cpu: "0m"
+          admissionWebhooks:
+            enabled: false
+
+          service:
+            type: NodePort
+            nodePorts:
+              http: 30080
+              https: 30443
+
   destination:
     server: https://kubernetes.default.svc
     namespace: ingress-nginx
+
   syncPolicy:
     automated:
       prune: true
       selfHeal: true
+
     syncOptions:
       - CreateNamespace=true

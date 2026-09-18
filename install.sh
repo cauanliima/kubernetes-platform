@@ -46,7 +46,7 @@ sudo cp /etc/fstab /etc/fstab.bak.$(date +%F-%T)
 sudo sed -i '/^[^#].*swap/ s/^/#/' /etc/fstab
 
 echo "Instalando RKE2"
-curl -sfL https://get.rke2.io | sh -
+curl -sfL https://get.rke2.io | sudo sh -
 
 echo "Ativando o serviço rke2-server"
 sudo systemctl enable rke2-server.service
@@ -74,15 +74,15 @@ echo "Instalação do cluster concluída!"
 
 echo "Instalando o kubectl"
 curl -LO "https://dl.k8s.io/release/$(curl -L -s https://dl.k8s.io/release/stable.txt)/bin/linux/amd64/kubectl"
-chmod +x kubectl
-mv kubectl /bin/
+sudo chmod +x kubectl
+sudo mv kubectl /bin/
 
 echo "Instalando Helm"
 wget https://get.helm.sh/helm-v3.14.2-linux-amd64.tar.gz
 tar -zxvf helm-v3.14.2-linux-amd64.tar.gz
 rm helm-v3.14.2-linux-amd64.tar.gz
-chmod +x  linux-amd64/helm
-mv  linux-amd64/helm /bin
+sudo chmod +x  linux-amd64/helm
+sudo mv  linux-amd64/helm /bin
 rm -r linux-amd64
 
 echo "Configurando provisionardor de volumes"

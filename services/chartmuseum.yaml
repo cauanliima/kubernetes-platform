@@ -18,7 +18,8 @@ spec:
             BASIC_AUTH_USER: admin
             BASIC_AUTH_PASS: cauan@123
         ingress:
-          enabled: true
+          enabled: false
+          ingressClassName: nginx
           hosts:
             - name: museum.local
               path: /
